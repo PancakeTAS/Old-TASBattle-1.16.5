@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "id": "tasbattle",
+  "version": "${version}",
+  "name": "TASBattle",
+  "description": "This is a TASBattle Mod for Server AND Client",
+  "authors": [
+    "Pfannekuchen"
+  ],
+  "contact": {
+    "website": "mgnet.work"
+  },
+  "license": "MIT",
+  "icon": "assets/tasbattle/icon.png",
+  "environment": "*",
+  "accessWidener" : "wide.accesswidener",
+  "entrypoints": {
+    "client": [
+      "work.mgnet.tasbattle.client.TASBattleClient"
+    ],
+    "main": [
+      "work.mgnet.tasbattle.TASBattle"
+    ]
+  },
+  "mixins": [
+    "tasbattle.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.11.1",
+    "fabric": "*",
+    "minecraft": "1.16.5"
+  }
+}

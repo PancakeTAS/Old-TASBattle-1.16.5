@@ -1,0 +1,13 @@
+accessWidener v1 named
+accessible    field    net/minecraft/client/MinecraftClient    renderTickCounter    Lnet/minecraft/client/render/RenderTickCounter;
+mutable    field    net/minecraft/client/render/RenderTickCounter    tickTime    F
+accessible    field    net/minecraft/client/render/RenderTickCounter    tickTime    F
+accessible    method    net/minecraft/server/command/SpreadPlayersCommand    execute    (Lnet/minecraft/server/command/ServerCommandSource;Lnet/minecraft/util/math/Vec2f;FFIZLjava/util/Collection;)I
+accessible    field    net/minecraft/server/world/ThreadedAnvilChunkStorage    currentChunkHolders    Lit/unimi/dsi/fastutil/longs/Long2ObjectLinkedOpenHashMap;
+accessible    method    net/minecraft/server/world/ThreadedAnvilChunkStorage    save    (Z)V
+accessible    method    net/minecraft/server/world/ThreadedAnvilChunkStorage    loadChunk    (Lnet/minecraft/util/math/ChunkPos;)Ljava/util/concurrent/CompletableFuture;
+accessible    field    net/minecraft/server/MinecraftServer    worlds    Ljava/util/Map;
+accessible    field    net/minecraft/server/MinecraftServer    workerExecutor    Ljava/util/concurrent/Executor;
+accessible    field    net/minecraft/server/MinecraftServer    session    Lnet/minecraft/world/level/storage/LevelStorage$Session;
+accessible    field    net/minecraft/server/MinecraftServer    saveProperties    Lnet/minecraft/world/SaveProperties;
+accessible    field    net/minecraft/server/MinecraftServer    worldGenerationProgressListenerFactory    Lnet/minecraft/server/WorldGenerationProgressListenerFactory;

@@ -1,0 +1,10 @@
+{
+  "generator": {
+    "type": "arena:void",
+    "biome_source": {
+      "type": "minecraft:fixed",
+      "biome": "minecraft:the_void"
+    }
+  },
+  "type": "arena:void_type"
+}
