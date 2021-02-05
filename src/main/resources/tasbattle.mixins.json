@@ -18,7 +18,8 @@
     "MixinHackMultiplayerScreen",
     "MixinCape",
     "PlayerEntityRendererMixin",
-    "MixinClientWorld"
+    "MixinClientWorld",
+    "MixinChatListener"
   ],
   "injectors": {
     "defaultRequire": 1

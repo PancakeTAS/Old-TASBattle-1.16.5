@@ -52,7 +52,31 @@ public abstract class MixinMainMenu extends Screen {
         this.copyrightTextWidth = this.textRenderer.getWidth("Copyright Mojang AB. Do not distribute!");
         this.copyrightTextX = this.width - this.copyrightTextWidth - 2;
         int j = this.height / 4 + 48;
+        this.addButton(new ButtonWidget(this.width / 2 - 100, j + 25, 200, 20, new TranslatableText("Connect to 1.16.5 Minigame Server"), (buttonWidget) -> {
 
+            List<String> forbiddenMods = new ArrayList<>();
+            for (File mod : new File("mods").listFiles()) {
+                boolean allowed = false;
+                for (String white : modWhitelist) {
+                    if (mod.getName().toLowerCase().contains(white.toLowerCase())) {
+                        allowed = true;
+                    }
+                }
+                if (!allowed) {
+                    System.out.println("Mod " + mod.getName() + " is not allowed!!!");
+                    forbiddenMods.add(mod.getName());
+                }
+            }
+            if (forbiddenMods.size() != 0) {
+                String msg = "Following Mods are forbidden on the Minigame Server:\r\n";
+                for (String mod : forbiddenMods) {
+                    msg = msg + "\r\n" + mod;
+                }
+                MinecraftClient.getInstance().openScreen(new InvalidModsScreen(new LiteralText("Forbidden Mods found!"), new LiteralText(msg)));
+            } else {
+                client.openScreen(new ConnectScreen(this, client, "mgnet.work", 1165));
+            }
+        }));
         this.addButton(new ButtonWidget(this.width / 2 - 100, j, 200, 20, new TranslatableText("Connect to 1.16.5 TASBattle Server"), (buttonWidget) -> {
 
             List<String> forbiddenMods = new ArrayList<>();

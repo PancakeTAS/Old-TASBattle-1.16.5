@@ -14,7 +14,7 @@ import work.mgnet.tasbattle.TASBattle;
 public class TASBattleClient implements ClientModInitializer {
 
     public static int tickrate = 20;
-    public static final byte version = 5;
+    public static final byte version = 7;
     public static boolean invalidVersion = false;
     public static boolean didShow = false;
 

@@ -174,7 +174,7 @@ public class TASBattle implements ModInitializer {
         ServerPlayNetworking.registerGlobalReceiver(new Identifier("version"), new ServerPlayNetworking.PlayChannelHandler() {
             @Override
             public void receive(MinecraftServer server, ServerPlayerEntity player, ServerPlayNetworkHandler handler, PacketByteBuf buf, PacketSender responseSender) {
-                System.out.println(player.getName() + " joined with version " + buf.readByte());
+                System.out.println(player.getName().getString() + " joined with version " + buf.readByte());
             }
         });
 

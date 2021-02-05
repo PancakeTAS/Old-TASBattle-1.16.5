@@ -58,10 +58,10 @@ public class PlayerHandler {
     }
 
     public static NativeImage parseCape(NativeImage image) {
-        int imageWidth = 160;
-        int imageHeight = 80;
-        int imageSrcWidth = image.getWidth() / 2;
-        int srcHeight = image.getHeight() / 2;
+        int imageWidth = image.getWidth() / 2;
+        int imageHeight = image.getHeight() / 2;
+        int imageSrcWidth = image.getWidth();
+        int srcHeight = image.getHeight();
 
         for (int imageSrcHeight = image.getHeight(); imageWidth < imageSrcWidth
                 || imageHeight < imageSrcHeight; imageHeight *= 2) {
