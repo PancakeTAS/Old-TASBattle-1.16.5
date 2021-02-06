@@ -19,7 +19,8 @@
     "MixinCape",
     "PlayerEntityRendererMixin",
     "MixinClientWorld",
-    "MixinChatListener"
+    "MixinChatListener",
+    "DisableOptiCape"
   ],
   "injectors": {
     "defaultRequire": 1

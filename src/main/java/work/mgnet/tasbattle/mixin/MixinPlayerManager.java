@@ -33,7 +33,7 @@ public abstract class MixinPlayerManager {
     @Inject(method = "onPlayerConnect", at = @At("TAIL"))
     public void redoonPlayerConnect(ClientConnection connection, ServerPlayerEntity player, CallbackInfo ci) {
         PacketByteBuf buf = PacketByteBufs.create();
-        buf.writeByte(7);
+        buf.writeByte(8);
         ServerPlayNetworking.send(player, new Identifier("updater"), buf);
         TASBattle.playerJoin(player);
     }

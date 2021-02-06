@@ -1,9 +1,11 @@
 package work.mgnet.tasbattle;
 
 import com.google.common.collect.ImmutableList;
+import com.mojang.brigadier.Command;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import net.fabricmc.api.DedicatedServerModInitializer;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v1.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
@@ -59,6 +61,7 @@ public class TASBattle implements ModInitializer {
     public static String kit = "tactical";
 
     public static boolean rl = false;
+    public static ArrayList<ServerPlayerEntity> spectators = new ArrayList<>();
 
     public static boolean isRunning;
     public static ArrayList<ServerPlayerEntity> players = new ArrayList<>();
@@ -291,18 +294,26 @@ public class TASBattle implements ModInitializer {
             );
         });
 
-        /*CommandRegistrationCallback.EVENT.register((dispatcher, dedicated) -> {
-            if (dedicated) dispatcher.register(literal("items").executes(context -> {
+        CommandRegistrationCallback.EVENT.register((dispatcher, dedicated) -> {
+            if (dedicated) dispatcher.register(literal("spec").requires((serverCommandSource -> {
+                return serverCommandSource.hasPermissionLevel(2);
+            })).executes(context -> {
                 if (!isRunning) {
-                    try {
-                        InventoryManaging.loadInventory(kit, context.getSource().getPlayer());
-                    } catch (IOException e) {
-                        e.printStackTrace();
+                    if (!spectators.contains(context.getSource().getPlayer())) spectators.add(context.getSource().getPlayer());
+                    context.getSource().sendFeedback(new LiteralText("§b» §7" + "You will be spectating the next game."), false);
+                    if (players.size() >= (context.getSource().getMinecraftServer().getPlayerManager().getPlayerList().size() - spectators.size())) {
+                        try {
+                            startGame(context.getSource());
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
                     }
+                } else {
+                    context.getSource().sendFeedback(new LiteralText("§b» §7" + "The Game is currently running"), false);
                 }
                 return 1;
             }));
-        });*/
+        });
 
         CommandRegistrationCallback.EVENT.register((dispatcher, dedicated) -> {
             if (dedicated) dispatcher.register(literal("ready")
@@ -326,7 +337,7 @@ public class TASBattle implements ModInitializer {
                             user.playSound(SoundEvents.BLOCK_NOTE_BLOCK_PLING, SoundCategory.MASTER, 1.0f, 1.0f);
                         }
                         context.getSource().getPlayer().sendMessage(new LiteralText("§b» §7" + "§aYou are now ready"), true);
-                        if (players.size() >= context.getSource().getMinecraftServer().getPlayerManager().getPlayerList().size()) {
+                        if (players.size() >= (context.getSource().getMinecraftServer().getPlayerManager().getPlayerList().size() - spectators.size())) {
                             try {
                                 startGame(context.getSource());
                             } catch (IOException e) {
@@ -383,8 +394,6 @@ public class TASBattle implements ModInitializer {
         buf.writeInt(tickrate);
         for (ServerPlayerEntity user : source.getMinecraftServer().getPlayerManager().getPlayerList()) {
             user.teleport(source.getMinecraftServer().getWorld(worldReg), 0, 100, 0, 0, 0);
-            stats.updateStats(user, 0, 0, 1, 0);
-            stats.saveStats();
         }
         source.getMinecraftServer().getWorld(worldReg).getWorldBorder().setSize(500);
         source.getMinecraftServer().getPlayerManager().sendToAll(new WorldBorderS2CPacket(source.getMinecraftServer().getWorld(worldReg).getWorldBorder(), WorldBorderS2CPacket.Type.SET_SIZE));
@@ -392,11 +401,24 @@ public class TASBattle implements ModInitializer {
         // Spread Players
         SpreadplayersTheft.spread(source.getMinecraftServer().getCommandSource(), source.getMinecraftServer().getPlayerManager().getPlayerList(), source.getMinecraftServer().getWorld(worldReg));
 
+        for (ServerPlayerEntity p : spectators) {
+            p.setGameMode(GameMode.SPECTATOR);
+            p.clearStatusEffects();
+            p.setExperienceLevel(0);
+            p.getHungerManager().setFoodLevel(20);
+            p.setHealth(20);
+            p.playSound(SoundEvents.ENTITY_PLAYER_LEVELUP, SoundCategory.MASTER, 1.0f, 1.0f);
+            p.sendMessage(new LiteralText("§b» §7" + "The Game has begun. Kill everyone to win"), false);
+            ServerPlayNetworking.send(p, tickrateChannel, buf);
+        }
+
         // Set Player Stuff
-        for (ServerPlayerEntity p : source.getMinecraftServer().getPlayerManager().getPlayerList()) {
+        for (ServerPlayerEntity p : players) {
             p.setGameMode(GameMode.SURVIVAL);
             p.clearStatusEffects();
             p.setExperienceLevel(0);
+            stats.updateStats(p, 0, 0, 1, 0);
+            stats.saveStats();
             p.getHungerManager().setFoodLevel(20);
             p.setHealth(20);
             InventoryManaging.loadInventory(kit, p);
@@ -411,6 +433,7 @@ public class TASBattle implements ModInitializer {
         if (!isRunning) return;
         // Clear Player List
         players.clear();
+        spectators.clear();
 
         // World stuff
         player.getServer().setDifficulty(Difficulty.PEACEFUL, true);
