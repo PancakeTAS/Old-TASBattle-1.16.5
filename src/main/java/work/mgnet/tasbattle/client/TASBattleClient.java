@@ -20,7 +20,7 @@ import java.util.HashMap;
 public class TASBattleClient implements ClientModInitializer {
 
     public static int tickrate = 20;
-    public static final byte version = 8;
+    public static final byte version = 9;
     public static boolean invalidVersion = false;
     public static boolean didShow = false;
 
@@ -28,7 +28,7 @@ public class TASBattleClient implements ClientModInitializer {
 
     public static String readUrl(URL url) throws IOException {
         try (InputStream in = url.openStream()) {
-            return IOUtils.toString(in);
+            return IOUtils.toString(in, "UTF-8");
         }
     }
 

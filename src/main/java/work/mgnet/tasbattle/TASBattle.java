@@ -61,7 +61,6 @@ public class TASBattle implements ModInitializer {
     public static String kit = "tactical";
 
     public static boolean rl = false;
-    public static ArrayList<ServerPlayerEntity> spectators = new ArrayList<>();
 
     public static boolean isRunning;
     public static ArrayList<ServerPlayerEntity> players = new ArrayList<>();
@@ -299,17 +298,14 @@ public class TASBattle implements ModInitializer {
                 return serverCommandSource.hasPermissionLevel(2);
             })).executes(context -> {
                 if (!isRunning) {
-                    if (!spectators.contains(context.getSource().getPlayer())) spectators.add(context.getSource().getPlayer());
-                    context.getSource().sendFeedback(new LiteralText("§b» §7" + "You will be spectating the next game."), false);
-                    if (players.size() >= (context.getSource().getMinecraftServer().getPlayerManager().getPlayerList().size() - spectators.size())) {
-                        try {
-                            startGame(context.getSource());
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    }
+                    context.getSource().sendFeedback(new LiteralText("§b» §7" + "The Game is currently not running"), false);
                 } else {
-                    context.getSource().sendFeedback(new LiteralText("§b» §7" + "The Game is currently running"), false);
+                    ServerPlayerEntity player = context.getSource().getPlayer();
+                    player.setGameMode(GameMode.SPECTATOR);
+                    player.inventory.clear();
+                    players.remove(player);
+                    player.teleport(0, 100, 0);
+                    player.setExperienceLevel(0);
                 }
                 return 1;
             }));
@@ -337,7 +333,7 @@ public class TASBattle implements ModInitializer {
                             user.playSound(SoundEvents.BLOCK_NOTE_BLOCK_PLING, SoundCategory.MASTER, 1.0f, 1.0f);
                         }
                         context.getSource().getPlayer().sendMessage(new LiteralText("§b» §7" + "§aYou are now ready"), true);
-                        if (players.size() >= (context.getSource().getMinecraftServer().getPlayerManager().getPlayerList().size() - spectators.size())) {
+                        if (players.size() >= (context.getSource().getMinecraftServer().getPlayerManager().getPlayerList().size())) {
                             try {
                                 startGame(context.getSource());
                             } catch (IOException e) {
@@ -401,17 +397,6 @@ public class TASBattle implements ModInitializer {
         // Spread Players
         SpreadplayersTheft.spread(source.getMinecraftServer().getCommandSource(), source.getMinecraftServer().getPlayerManager().getPlayerList(), source.getMinecraftServer().getWorld(worldReg));
 
-        for (ServerPlayerEntity p : spectators) {
-            p.setGameMode(GameMode.SPECTATOR);
-            p.clearStatusEffects();
-            p.setExperienceLevel(0);
-            p.getHungerManager().setFoodLevel(20);
-            p.setHealth(20);
-            p.playSound(SoundEvents.ENTITY_PLAYER_LEVELUP, SoundCategory.MASTER, 1.0f, 1.0f);
-            p.sendMessage(new LiteralText("§b» §7" + "The Game has begun. Kill everyone to win"), false);
-            ServerPlayNetworking.send(p, tickrateChannel, buf);
-        }
-
         // Set Player Stuff
         for (ServerPlayerEntity p : players) {
             p.setGameMode(GameMode.SURVIVAL);
@@ -433,7 +418,6 @@ public class TASBattle implements ModInitializer {
         if (!isRunning) return;
         // Clear Player List
         players.clear();
-        spectators.clear();
 
         // World stuff
         player.getServer().setDifficulty(Difficulty.PEACEFUL, true);
