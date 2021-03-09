@@ -5,6 +5,7 @@ import com.mojang.brigadier.Command;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import io.netty.buffer.ByteBufUtil;
 import net.fabricmc.api.DedicatedServerModInitializer;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v1.CommandRegistrationCallback;
@@ -56,6 +57,7 @@ public class TASBattle implements ModInitializer {
     public static int tickrate = 20;
     public static int gameTickrate = 20;
     public static final Identifier tickrateChannel = new Identifier("tickratechanger");
+    public static final Identifier atmoschannel = new Identifier("atmosphere");
     public static YamlFile config;
     public static String map = "TheNile";
     public static String kit = "tactical";
@@ -70,6 +72,8 @@ public class TASBattle implements ModInitializer {
     public static StatsUtils stats;
 
     public static RegistryKey<World> worldReg = RegistryKey.of(Registry.DIMENSION, new Identifier("arena", "void"));
+    public static boolean isNether;
+    public static boolean hideParticles;
 
     @Override
     public void onInitialize() {
@@ -254,6 +258,18 @@ public class TASBattle implements ModInitializer {
         });
 
         CommandRegistrationCallback.EVENT.register((dispatcher, dedicated) -> {
+            if (dedicated) dispatcher.register(literal("hideparticles").requires((serverCommandSource -> {
+                        return serverCommandSource.hasPermissionLevel(2);
+                    }))
+                            .executes((context) -> {
+                                hideParticles = !hideParticles;
+                                context.getSource().sendFeedback(new LiteralText("§b» §7" + (hideParticles ? "Some Particles are Invisible now" : "Some Particles are visible again.")), false);
+                                return 1;
+                            })
+            );
+        });
+
+        CommandRegistrationCallback.EVENT.register((dispatcher, dedicated) -> {
             if (dedicated) dispatcher.register(literal("forcestart").requires((serverCommandSource -> {
                         return serverCommandSource.hasPermissionLevel(2);
                     }))
@@ -291,6 +307,51 @@ public class TASBattle implements ModInitializer {
                         return 1;
                     })
             );
+        });
+
+        CommandRegistrationCallback.EVENT.register((dispatcher, dedicated) -> {
+            if (dedicated) dispatcher.register(literal("overworld").requires((serverCommandSource -> {
+                return serverCommandSource.hasPermissionLevel(2);
+            })).executes(context -> {
+                if (!isRunning) {
+                    context.getSource().sendFeedback(new LiteralText("§b» §7" + "This Command can only be ran in-game"), false);
+                } else {
+                    context.getSource().getPlayer().getServerWorld().getDimension().natural = true;
+                    context.getSource().getPlayer().getServerWorld().getDimension().bedWorks = true;
+                    context.getSource().getPlayer().getServerWorld().getDimension().respawnAnchorWorks = false;
+                    context.getSource().getPlayer().getServerWorld().getDimension().ultrawarm = false;
+                    isNether = false;
+                    for (ServerPlayerEntity e : context.getSource().getPlayer().getServer().getPlayerManager().getPlayerList()) {
+                        PacketByteBuf b = PacketByteBufs.create();
+                        b.writeString("overworld");
+                        ServerPlayNetworking.send(e, atmoschannel, b);
+                    }
+                }
+                return 1;
+            }));
+        });
+
+        CommandRegistrationCallback.EVENT.register((dispatcher, dedicated) -> {
+            if (dedicated) dispatcher.register(literal("nether").requires((serverCommandSource -> {
+                return serverCommandSource.hasPermissionLevel(2);
+            })).executes(context -> {
+                if (!isRunning) {
+                    context.getSource().sendFeedback(new LiteralText("§b» §7" + "This Command can only be ran in-game"), false);
+                } else {
+                    context.getSource().getPlayer().getServerWorld().getDimension().natural = false;
+                    context.getSource().getPlayer().getServerWorld().getDimension().bedWorks = false;
+                    context.getSource().getPlayer().getServerWorld().getDimension().respawnAnchorWorks = true;
+                    context.getSource().getPlayer().getServerWorld().getDimension().ultrawarm = true;
+                    isNether = true;
+                    for (ServerPlayerEntity e : context.getSource().getPlayer().getServer().getPlayerManager().getPlayerList()) {
+                        PacketByteBuf b = PacketByteBufs.create();
+                        b.writeString("nether");
+                        ServerPlayNetworking.send(e, atmoschannel, b);
+                    }
+
+                }
+                return 1;
+            }));
         });
 
         CommandRegistrationCallback.EVENT.register((dispatcher, dedicated) -> {
@@ -383,7 +444,7 @@ public class TASBattle implements ModInitializer {
         if (isRunning) return;
 
         // Set World Stuff
-        source.getMinecraftServer().setDifficulty(Difficulty.EASY, true);
+        source.getMinecraftServer().setDifficulty(Difficulty.HARD, true);
 
         tickrate = gameTickrate;
         PacketByteBuf buf = PacketByteBufs.create();
@@ -410,6 +471,9 @@ public class TASBattle implements ModInitializer {
             p.playSound(SoundEvents.ENTITY_PLAYER_LEVELUP, SoundCategory.MASTER, 1.0f, 1.0f);
             p.sendMessage(new LiteralText("§b» §7" + "The Game has begun. Kill everyone to win"), false);
             ServerPlayNetworking.send(p, tickrateChannel, buf);
+            PacketByteBuf b2 = PacketByteBufs.create();
+            b2.writeString(isNether ? "nether" : "overworld");
+            ServerPlayNetworking.send(p, atmoschannel, b2);
         }
         isRunning = true;
     }
@@ -427,7 +491,6 @@ public class TASBattle implements ModInitializer {
         buf.writeInt(tickrate);
         for (ServerPlayerEntity user : player.getServer().getPlayerManager().getPlayerList()) {
             ServerPlayNetworking.send(user, tickrateChannel, buf);
-            //if (!user.isDead()) user.teleport(player.getServer().getOverworld(), 0, 4, 0, 0, 0);
         }
 
         // Set Player Stuff

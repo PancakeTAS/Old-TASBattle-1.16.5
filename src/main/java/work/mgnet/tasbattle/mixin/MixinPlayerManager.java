@@ -33,8 +33,11 @@ public abstract class MixinPlayerManager {
     @Inject(method = "onPlayerConnect", at = @At("TAIL"))
     public void redoonPlayerConnect(ClientConnection connection, ServerPlayerEntity player, CallbackInfo ci) {
         PacketByteBuf buf = PacketByteBufs.create();
-        buf.writeByte(9);
+        buf.writeByte(12);
         ServerPlayNetworking.send(player, new Identifier("updater"), buf);
+        PacketByteBuf buf2 = PacketByteBufs.create();
+        buf2.writeString(TASBattle.isNether ? "nether" : "overworld");
+        ServerPlayNetworking.send(player, TASBattle.atmoschannel, buf2);
         TASBattle.playerJoin(player);
     }
 

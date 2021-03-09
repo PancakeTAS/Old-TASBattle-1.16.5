@@ -367,7 +367,7 @@ public class TASBattle implements ModInitializer {
         if (isRunning) return;
 
         // Set World Stuff
-        source.getMinecraftServer().setDifficulty(Difficulty.EASY, true);
+        source.getMinecraftServer().setDifficulty(Difficulty.HARD, true);
 
         tickrate = gameTickrate;
         PacketByteBuf buf = PacketByteBufs.create();

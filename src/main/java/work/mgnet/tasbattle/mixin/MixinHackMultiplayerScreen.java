@@ -16,6 +16,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import work.mgnet.tasbattle.TASBattle;
 import work.mgnet.tasbattle.client.TASBattleClient;
 
+import javax.security.auth.callback.Callback;
 import java.io.*;
 import java.net.URL;
 
@@ -36,6 +37,14 @@ public class MixinHackMultiplayerScreen {
             PacketByteBuf buf = PacketByteBufs.create();
             buf.writeByte(TASBattleClient.version);
             ClientPlayNetworking.send(new Identifier("version"), buf);
+        }
+    }
+
+    @Inject(method = "render", at = @At("HEAD"))
+    public void injectrender(CallbackInfo ci) {
+        if (TASBattleClient.requestRefresh) {
+            TASBattleClient.requestRefresh = false;
+            MinecraftClient.getInstance().worldRenderer.reload();
         }
     }
 

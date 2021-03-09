@@ -37,7 +37,7 @@ public abstract class MixinMainMenu extends Screen {
     @Shadow
     public static Identifier ACCESSIBILITY_ICON_TEXTURE;
 
-    public List<String> modWhitelist = ImmutableList.of("sodium", "phosphor", "lithium", "opti", "fabricapi", "fabric-api", "fabric_api", "borderless", "tas", "menu", "dynamic", "desktop.ini");
+    public List<String> modWhitelist = ImmutableList.of("sodium", "phosphor", "lithium", "opti", "fabricapi", "fabric-api", "fabric_api", "borderless", "tas", "menu", "dynamic", "desktop.ini", "replaymod");
 
     protected MixinMainMenu(Text title) {
         super(title);
